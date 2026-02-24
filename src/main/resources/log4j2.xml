@@ -1,0 +1,91 @@
+<!--This XML file does not appear to have any style information associated with it. The document tree is shown below.-->
+        <!--
+            Log4j2 configuration file:
+            - Defines appenders for console and file logging
+            - Sets logging levels for different packages
+            status="WARN" to limit internal Log4j2 logging output
+            status="DEBUG" for more detailed internal Log4j2 logging (useful for troubleshooting)
+            status="ERROR" to show only errors from Log4j2 itself
+            status="OFF" to disable internal Log4j2 logging entirely
+            status="INFO" for general informational messages from Log4j2
+            status="TRACE" for the most detailed internal Log4j2 logging (very verbose)
+            status="ALL" to enable all levels of internal Log4j2 logging
+            see https://logging.apache.org/log4j/2.x/manual/configuration.html
+         -->
+<Configuration status="WARN">
+    <Properties>
+        <!--  Log file location using project root  -->
+        <Property name="LOG_DIR">target/logs</Property>
+        <!--
+                    %d{yyyy-MM-dd HH:mm:ss.SSS} - Ngày/giờ (ví dụ: 2026-02-06 21:34:32.910)
+                    %c{1} - Tên class (chỉ class name, không có package)
+                    %-5level - Mức độ log (DEBUG, INFO, WARN, ERROR, FATAL) canh trái, độ rộng 5 ký tự
+                    %msg - Nội dung message
+                    %n - Xuống dòng mới
+                 -->
+        <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%c{1}] %-5level - %msg%n</Property>
+    </Properties>
+    <!--  Nơi lưu trữ  -->
+    <Appenders>
+        <!--  Console Appender  -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%c{1}] %highlight{%-5level}{FATAL=red, ERROR=red, WARN=yellow, INFO=green, DEBUG=cyan, TRACE=blue}- %msg%n"/>
+        </Console>
+        <!--  File Appender - All Logs  -->
+        <RollingFile name="FileAppender" fileName="${LOG_DIR}/automation.log" filePattern="${LOG_DIR}/automation-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+        <!--  File Appender - Test Execution Only  -->
+        <RollingFile name="TestAppender" fileName="${LOG_DIR}/test-execution.log" filePattern="${LOG_DIR}/test-execution-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="10MB"/>
+            </Policies>
+            <!--  max="5" = giữ tối đa 5 file cũ  -->
+            <DefaultRolloverStrategy max="5"/>
+        </RollingFile>
+        <!--  File Appender - Errors Only  -->
+        <RollingFile name="ErrorAppender" fileName="${LOG_DIR}/errors.log" filePattern="${LOG_DIR}/errors-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="5MB"/>
+            </Policies>
+            <!--  max="10" = giữ tối đa 10 file cũ  -->
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+    </Appenders>
+    <!--  Loggers (Định Tuyến Log)  -->
+    <Loggers>
+        <!--  Selenium WebDriver logging (reduce noise)  -->
+        <Logger name="org.openqa.selenium" level="WARN" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+        </Logger>
+        <!--  Your test framework logging  -->
+        <Logger name="core" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+            <AppenderRef ref="TestAppender"/>
+        </Logger>
+        <Logger name="pages" level="DEBUG" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+            <AppenderRef ref="TestAppender"/>
+        </Logger>
+        <!--  Root logger  -->
+        <!--  level="DEBUG": Hiển thị từ DEBUG trở lên  -->
+        <Root level="DEBUG">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+            <AppenderRef ref="ErrorAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>
