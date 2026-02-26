@@ -1,5 +1,5 @@
 
-public class removeDuplicate {
+public class RemoveDuplicate {
     public static void main(String[] args) {
         String S = "feredssagg";
         String new_S = "";
